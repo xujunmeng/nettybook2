@@ -13,9 +13,11 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package com.phei.netty.frame.delimiter;
+package com.phei.netty.frame.delimiter.server;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -24,43 +26,25 @@ import io.netty.channel.ChannelHandlerContext;
  * @date 2014年2月14日
  * @version 1.0
  */
-public class EchoClientHandler extends ChannelHandlerAdapter {
+@Sharable
+public class EchoServerHandler extends ChannelHandlerAdapter {
 
-    private int counter;
-
-    static final String ECHO_REQ = "Hi, Lilinfeng. Welcome to Netty.$_";
-
-    /**
-     * Creates a client-side handler.
-     */
-    public EchoClientHandler() {
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-	// ByteBuf buf = UnpooledByteBufAllocator.DEFAULT.buffer(ECHO_REQ
-	// .getBytes().length);
-	// buf.writeBytes(ECHO_REQ.getBytes());
-	for (int i = 0; i < 10; i++) {
-	    ctx.writeAndFlush(Unpooled.copiedBuffer(ECHO_REQ.getBytes()));
-	}
-    }
+    int counter = 0;
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)
 	    throws Exception {
-	System.out.println("This is " + ++counter + " times receive server : ["
-		+ msg + "]");
-    }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-	ctx.flush();
+	String body = (String) msg;
+	System.out.println("This is " + ++counter + " times receive client : ["
+		+ body + "]");
+	body += "$_";
+	ByteBuf echo = Unpooled.copiedBuffer(body.getBytes());
+	ctx.writeAndFlush(echo);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 	cause.printStackTrace();
-	ctx.close();
+	ctx.close();// 发生异常，关闭链路
     }
 }
